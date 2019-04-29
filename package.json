@@ -1,0 +1,18 @@
+{
+  "name": "micro",
+  "version": "1.0.0",
+  "description": "Trabalho para Microcontroladores - BCC 2019",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "node index.js"
+  },
+  "author": "Antônio Eugênio",
+  "license": "ISC",
+  "dependencies": {
+    "body-parser": "^1.19.0",
+    "express": "^4.16.4",
+    "http-server": "^0.11.1",
+    "serialport": "^7.1.4"
+  }
+}
