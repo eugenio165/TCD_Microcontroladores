@@ -52,11 +52,14 @@ app.use(express.static(__dirname + '/TCD_Microcontroladores_Site/dist'));
 
 // Enviando o index do site quando alguem bater no link do site
 app.get('/', function(req, res){
-    res.sendFile(__dirname + '/TCD_Microcontroladores_Site/dist/index.html');
+    console.log('hi');
+    res.send('OK');
+    // res.sendFile(__dirname + '/TCD_Microcontroladores_Site/dist/index.html');
 });
 
 // Usado para redirecionar os pedidos em qualquer link
 app.get('*', function(req, res){
+    console.log('redirected');
     res.redirect("/");
 });
 
@@ -72,15 +75,23 @@ io.on('connection', function (socket) {
 
     // Ao receber um pedido de alteração de estado do led...
     socket.on('led toggle', function (index) {
-        console.log(index);
+        console.log(index, ledStatus[index]);
         ledStatus[index] = !ledStatus[index];
+        console.log('after', ledStatus[index]);
         // Passa para o PIC qual led é para ser apagado/ligado / RECEBE DO PIC O ESTADO DO LED
-        io.emit('led change', { index: index, state: ledStatus[index]});
+        io.emit('led status', ledStatus);
     });
 
     // Ao receber um pedido de configuração da pagina de ADMIN...
-    socket.on('led options', function (qty) {
-        console.log(qty);
+    socket.on('led options', function (config) {
+        console.log(config);
+        ledQty = config.ledQty;
+        const newStatus = [];
+        for (let index = 0; index < ledQty; index++) {
+            newStatus.push(false);
+        }
+        ledStatus = newStatus;
+        io.emit('led status', ledStatus);
         // Passa para o PIC quantos LEDS é para ser usado / RECEBE DO PIC OS ESTADOS DOS LEDS E ATUALIA CONTADOR
     });
 });
