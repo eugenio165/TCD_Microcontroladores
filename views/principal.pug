@@ -1,0 +1,20 @@
+extends navbar.pug
+
+block content
+    script.
+        document.onreadystatechange = function () {
+            if(document.readyState === "complete"){
+                var content = document.getElementById('content');
+                var loader = document.getElementById('loader');
+                console.log(window.status);
+            }
+        }
+    #content
+        #loader.container
+            loader.d-flex.justify-content-center.flex-column.text-center
+                .card.col-lg-6.offset-lg-3.loader
+                    .card-body
+                        strong Conectando ao Servidor ...
+                        .d-flex.justify-content-center
+                            .spinner-border(role='status')
+                                span.sr-only Loading...

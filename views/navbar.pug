@@ -21,30 +21,43 @@ html(lang='en')
             .text-white {
                 margin-right: 15px;
                 color: white;
-            }   
+            }
+        script(src='/socket.io/socket.io.js')
     body
         .container
             nav.navbar.navbar-expand-sm.navbar-dark.bg-dark
                 a.navbar-brand(href='/') TCD - Antônio Eugênio
                 ul.navbar-nav.mr-auto
-                    li.nav-item.active
+                    li(class= (route == 'principal') ? 'active' : '').nav-item
                         a(href='/').nav-link Principal
-                    li.nav-item
+                    li(class= (route == 'admin') ? 'active' : '').nav-item
                         a(href='/admin').nav-link Admin
                 span.text-white Status da conexão:
-                - var socket = 'conectado'
-                if (socket == "reconectando")
-                    .btn.btn-info Reconectando
-                else if (socket == 'conectando')
-                    .btn.btn-primary Conectando
-                else if (socket == 'conectado')
-                    .btn.btn-success Conectado
-                else
-                    .btn.btn-danger Offline
-            .row
-                include ./mixins/led-switch
-                -var LEDS = [{state: false}, {state: false}, {state: true}, {state: true}, {state: false}, ]
-                each LED, index in LEDS
-                    +ledswitch(index, LED.state)
+                #statusbtn.btn.btn-primary Conectando
+            block content
             
-    include ./partials/scripts
+    script.
+        var SERVER_URL = '#{serverurl}';
+
+        window.onload = function () {
+            var socket = io(SERVER_URL, {reconnectionAttempts: 6, reconnectionDelayMax: 3000});
+            var status  = document.getElementById('statusbtn');
+            socket.on('connect', (data) => {
+                status.classList.remove('btn-primary','btn-danger', 'btn-info', 'btn-success');
+                status.classList.add('btn-success');
+            });
+            socket.on('reconnecting', (data) => {
+                status.classList.remove('btn-primary','btn-danger', 'btn-info', 'btn-success');
+                status.classList.add('btn-info');
+            });
+            socket.on('reconnect_failed', () => {
+                status.classList.remove('btn-primary','btn-danger', 'btn-info', 'btn-success');
+                status.classList.add('btn-danger');
+            });
+        //- socket.on('led status', (status) => {
+        //-     var LEDS = status.map(s => {
+        //-         return {state: s, querying = false};
+        //-     });
+        //-     console.log(status);
+        //- });
+        }
