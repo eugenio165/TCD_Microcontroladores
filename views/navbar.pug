@@ -1,0 +1,50 @@
+doctype html
+html(lang='en')
+    head
+        meta(charset='utf-8')
+        title TCD - Antônio Eugênio
+        meta(name='viewport', content='width=device-width, initial-scale=1.0')
+        meta(name='description', content='')
+        meta(name='author', content='')
+        link(rel='stylesheet', href='https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css', integrity='sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm', crossorigin='anonymous')
+        link(href='/css/main.css', rel='stylesheet')
+        style(type='text/css').
+
+            body {
+                background-image: url('/assets/bg-iot.jpg');
+                background-repeat: repeat;
+                background-attachment: fixed;
+                height: max-content;
+                min-height: 100vh;
+            }
+
+            .text-white {
+                margin-right: 15px;
+                color: white;
+            }   
+    body
+        .container
+            nav.navbar.navbar-expand-sm.navbar-dark.bg-dark
+                a.navbar-brand(href='/') TCD - Antônio Eugênio
+                ul.navbar-nav.mr-auto
+                    li.nav-item.active
+                        a(href='/').nav-link Principal
+                    li.nav-item
+                        a(href='/admin').nav-link Admin
+                span.text-white Status da conexão:
+                - var socket = 'conectado'
+                if (socket == "reconectando")
+                    .btn.btn-info Reconectando
+                else if (socket == 'conectando')
+                    .btn.btn-primary Conectando
+                else if (socket == 'conectado')
+                    .btn.btn-success Conectado
+                else
+                    .btn.btn-danger Offline
+            .row
+                include ./mixins/led-switch
+                -var LEDS = [{state: false}, {state: false}, {state: true}, {state: true}, {state: false}, ]
+                each LED, index in LEDS
+                    +ledswitch(index, LED.state)
+            
+    include ./partials/scripts

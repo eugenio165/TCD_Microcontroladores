@@ -1,0 +1,60 @@
+html
+    head
+        title= 'TCD - Antônio Eugênio'
+        link(href='/css/bootstrap.css', rel='stylesheet')
+        link(href='/css/bootstrap-responsive.css', rel='stylesheet')
+        style(type="text/css").
+            .background {
+                background-image: url('../assets/bg-iot.jpg');
+                background-repeat: repeat;
+                background-attachment: fixed;
+                height: max-content;
+                min-height: 100vh;
+            }
+
+            .text-white {
+                margin-right: 15px;
+            }
+
+            .card-title {
+                padding-top: 7px;
+            }
+
+            .row {
+                margin-top: 30px;
+            }
+
+            .card {
+                margin-top: 15px;
+                margin-bottom: 15px;
+            }
+
+            .loader {
+                height: 150px;
+            }
+
+            .green {
+                color: green;
+            }
+
+            .red {
+                color: rgb(241, 97, 78);
+            }
+
+            .ledinfo { 
+                display: flex; 
+                justify-content: space-between;
+            }
+
+    body
+        .background
+            .container
+                nav.navbar.navbar-expand-sm.navbar-dark.bg-dark
+                    a.navbar-brand TCD - Antônio Eugênio
+                    ul.navbar-nav.mr-auto
+                        li.nav-item
+                            a.nav-link Principal
+                            a.nav-link Admin
+                    span.text-white Status da conexão:
+                    .btn 
+                block content
