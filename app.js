@@ -13,14 +13,15 @@ var bodyParser = require('body-parser');
 // Usado apra armazenar os estados dos leds
 var ledQty = 3;
 var ledStatus = [false, false, false];
+const path = require('path');
 
 // Pacote usado para deixar o servidor no ar, na internet
-const ngrok = require('ngrok');
-var url;
-((async ) => {
-    url = await ngrok.connect(port);
-    console.log(url);
-})();
+// const ngrok = require('ngrok');
+// var url;
+// (async() => {
+//     url = await ngrok.connect(port);
+//     console.log(url);
+// })();
 
 // Pacote para comunicar com o PIC
 const SerialPort = require('serialport');
@@ -31,9 +32,9 @@ const options = {
     autoOpen: true,
 };
 
-const microport = new SerialPort('/dev/ttyUSB0', options,  err => {
+const microport = new SerialPort('/dev/ttyUSB0', options, err => {
     if (err)
-      return console.log('Erro ao abrir a porta!\n', err.message);
+        return console.log('Erro ao abrir a porta!\n', err.message);
     console.log('ABRIU LOGO NO INICIO');
 });
 
@@ -63,7 +64,7 @@ microport.on('data', (data) => {
 // Configurando conexão com o servidor
 
 
-
+app.set('view engine', 'pug');
 // Habilitando o entendimento de dados passados por POST
 app.use(bodyParser.urlencoded({
     extended: true,
@@ -71,11 +72,17 @@ app.use(bodyParser.urlencoded({
 app.use(bodyParser.json());
 
 // Disponibilizando a aplicação do site feito em angular
-app.use(express.static(__dirname + '/dist'));
+app.set("views", __dirname + "/views");
+// app.use(express.static(__dirname + '/views'));
+app.use(express.static(path.join(__dirname, "public")));
 
 // Enviando o index do site quando alguem bater no link do site
 app.get('/', (req, res) => {
-    res.sendFile(__dirname + '/dist/index.html');
+    res.render('navbar');
+});
+
+app.get('/admin', (req, res) => {
+    res.render('admin');
 });
 
 // Usado para redirecionar os pedidos em qualquer link
