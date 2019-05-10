@@ -78,11 +78,11 @@ app.use(express.static(path.join(__dirname, "public")));
 
 // Enviando o index do site quando alguem bater no link do site
 app.get('/', (req, res) => {
-    res.render('navbar');
+    res.render('principal', {serverurl: 'localhost:3000', route: 'principal'});
 });
 
 app.get('/admin', (req, res) => {
-    res.render('admin');
+    res.render('admin', {serverurl: 'localhost:3000', route: 'admin'});
 });
 
 // Usado para redirecionar os pedidos em qualquer link
