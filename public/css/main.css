@@ -42,3 +42,23 @@
 .marketing p+h4 {
     margin-top: 28px;
 }
+
+/* Loader */
+
+.spin {
+    border: 2px solid #ffffff; /* Light grey */
+    border-top: 2px solid #000000; /* Blue */
+    border-radius: 50%;
+    width: 30px;
+    height: 30px;
+    transition: transform 0.5s ease-in-out;
+}
+  
+.spin-1 {
+    transform: rotate(360deg);
+    transition: all 0s;
+}
+
+.spin-2 {
+    transform: rotate(360deg);
+}

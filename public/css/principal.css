@@ -41,11 +41,12 @@
     padding-top: 7px;
 }
 
-.row {
-    margin-top: 30px;
+.card {
+    margin-top: 7px;
+    margin-bottom: 7px;
 }
 
-.card {
+#masterbtn {
     margin-top: 15px;
     margin-bottom: 15px;
 }
