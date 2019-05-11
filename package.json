@@ -1,8 +1,8 @@
 {
-  "name": "micro",
+  "name": "tcd-micro",
   "version": "1.0.0",
   "description": "Trabalho para Microcontroladores - BCC 2019",
-  "main": "index.js",
+  "main": "app.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "start": "node app.js",
@@ -15,6 +15,7 @@
     "express": "^4.16.4",
     "http-server": "^0.11.1",
     "ngrok": "^3.1.1",
+    "open": "^6.2.0",
     "pug": "^2.0.3",
     "serialport": "^7.1.4",
     "serve-favicon": "^2.5.0",
