@@ -3,6 +3,7 @@ var express = require('express');
 var app = express();
 const port = 3000;
 var favicon = require("serve-favicon");
+const open = require('open');
 
 // Usado para comunicação em tempo real
 var server = require('http').Server(app);
@@ -17,11 +18,12 @@ var ledStatus = [false, true, false];
 const path = require('path');
 
 // Pacote usado para deixar o servidor no ar, na internet
-// const ngrok = require('ngrok');
-// var url;
-// (async() => {
+const ngrok = require('ngrok');
+var url = 'localhost:3000';
+// (async () => {
 //     url = await ngrok.connect(port);
 //     console.log(url);
+//     open(url);
 // })();
 
 // Pacote para comunicar com o PIC
@@ -80,7 +82,7 @@ app.use(favicon(path.join(__dirname, "public", "assets", "iot.ico")));
 
 // Enviando o index do site quando alguem bater no link do site
 app.get('/', (req, res) => {
-    res.render('principal', { serverurl: 'localhost:3000', route: 'principal' });
+    res.render('principal', { serverurl: url, route: 'principal' });
 });
 
 app.get('/admin', (req, res) => {
@@ -94,6 +96,7 @@ app.get('*', (req, res) => {
 
 server.listen(port, (succ, err) => {
     console.log("Servidor ativo na porta: " + port);
+    open('http://localhost:3000');
 });
 
 
@@ -116,30 +119,33 @@ io.on('connection', (socket) => {
         });
         setTimeout(() => {
             io.emit('led status', ledStatus);
-
-        }, 750);
+        }, 600);
     });
 
     // Ao receber um pedido para ligar todos os LEDs...
     socket.on('led on', (index) => {
         ledStatus = ledStatus.map(state => true);
-        console.log('LEDs OFF');
+        console.log('LEDs ON');
         microport.write(Buffer.from([10]));
-        io.emit('led status', ledStatus);
+        setTimeout(() => {
+            io.emit('led status', ledStatus);
+        }, 600);
     });
 
     // Ao receber um pedido para apagar todos os LEDs...
     socket.on('led off', (index) => {
         ledStatus = ledStatus.map(state => false);
-        console.log('LEDs ON');
+        console.log('LEDs OFF');
         microport.write(Buffer.from([9]));
-        io.emit('led status', ledStatus);
+        setTimeout(() => {
+            io.emit('led status', ledStatus);
+        }, 600);
     });
 
     // Ao receber um pedido de configuração da pagina de ADMIN...
     socket.on('led options', (config) => {
         //TODO: Set trisb in pic
-        ledQty = config.ledQty;
+        ledQty = config;
         const newStatus = [];
         for (let index = 0; index < ledQty; index++) {
             newStatus.push(false);
