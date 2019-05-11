@@ -4,27 +4,32 @@ block script
     script.
         var SERVER_URL = '#{serverurl}';
         var socket;
-        var fucked = true;
+        var ledQty = 0;
         window.onload = () => {
             socket = io(SERVER_URL, {reconnectionAttempts: 6, reconnectionDelayMax: 3000});
             var status  = document.getElementById('statusbtn');
             var content = document.getElementById('content');
             var loader = document.getElementById('loader');
             var ledcard = document.getElementsByClassName('ledcard')[0];
-            var ledQty = 0;
             socket.on('connect', (data) => {
                 status.classList.remove('btn-primary','btn-danger', 'btn-info', 'btn-success');
                 status.classList.add('btn-success');
+                status.innerHTML = 'Conectado';
+
+                var masterbtn = document.getElementById('masterbtn');
+                masterbtn.style.display = 'flex';
             });
 
             socket.on('reconnecting', (data) => {
                 status.classList.remove('btn-primary','btn-danger', 'btn-info', 'btn-success');
                 status.classList.add('btn-info');
+                status.innerHTML = 'Reconectando';
             });
 
             socket.on('reconnect_failed', () => {
                 status.classList.remove('btn-primary','btn-danger', 'btn-info', 'btn-success');
                 status.classList.add('btn-danger');
+                status.innerHTML = 'Offline';
             });
             
             socket.on('led status', (status) => {
@@ -40,14 +45,15 @@ block script
 
                     ledstate.classList.remove('led-red');
                     ledstate.classList.add('led-green');
-                    var button = el.querySelector('btn');
+                    var button = el.querySelector('.btn-led');
                     button.classList.remove('btn-success');
                     button.classList.add('btn-danger');
                     button.innerHTML = 'APAGAR';
 
                     let spinner = el.querySelector('#spinner');
                     spinner.style.display = 'none';
-                    button.style.display = 'block';
+                    var row = button.parentNode.parentNode;
+                    row.style.display = 'flex';
                 }
                 var setOff = (el) => {
                     var ledstate = el.querySelector('#state');
@@ -57,25 +63,26 @@ block script
                     //- }
                     ledstate.classList.remove('led-green');
                     ledstate.classList.add('led-red');
-                    var button = el.querySelector('btn');
+                    var button = el.querySelector('.btn-led');
                     button.classList.remove('btn-danger');
                     button.classList.add('btn-success');
                     button.innerHTML = 'LIGAR';
 
                     let spinner = el.querySelector('#spinner');
                     spinner.style.display = 'none';
-                    button.style.display = 'block';
+                    var row = button.parentNode.parentNode;
+                    row.style.display = 'flex';
                 }
                 // Add new leds
                 if (status.length != ledQty) {
                     ledQty = status.length;
-                    var cards = content.querySelectorAll('ledcard');
+                    loader.style.display = 'none';
+                    content.style.visibility = 'visible';
+                    var cards = content.querySelectorAll('.ledcard');
                     cards.forEach(card => {
-                        card.parentNode.removeChild(element);
+                        content.removeChild(card);
                     });
                     status.map((state, index) => {
-                        loader.style.display = 'none';
-                        content.style.visibility = 'visible';
 
                         var newcard = ledcard.cloneNode(true);
 
@@ -87,7 +94,7 @@ block script
                         var title = newcard.querySelector('h5');
                         title.innerHTML = 'LED ' + index;
 
-                        var btn = newcard.querySelector('btn');
+                        var btn = newcard.querySelector('.btn-led');
                         btn.setAttribute('id', 'led' + index);
 
                         if (state) {
@@ -109,34 +116,75 @@ block script
                         }
                     });
                 }
-
+            });
+        }
+        const hideButtons = () => {
+            var cards = content.querySelectorAll('.ledcard');
+            cards.forEach(card => {
+                var button = card.querySelector('.btn-led');
+                var row = button.parentNode.parentNode;
+                var parent = row.parentNode;
+                var spinner = parent.querySelector('#spinner');
+                spinner.style.display = 'block';
+                row.style.display = 'none';
             });
         }
         function ledsOff() {
+            hideButtons();
             socket.emit('led off');
         };
 
         function ledsOn() {
+            hideButtons();
             socket.emit('led on');
         };
 
         var toggleLed = (target) => {
             var string = target.getAttribute('id');
             index = string.split('led')[1];
-            socket.emit('led toggle', parseInt(index));
-            var spinner = target.parentNode.querySelector('#spinner');
+            var timer = target.parentNode.parentNode.querySelector('input');
+            if (timer.value) {
+                socket.emit('led timer', {led: parseInt(index), timer: timer.value});
+                timer.value = null;
+                timer.parentNode.style.display = 'none';
+            } else {
+                socket.emit('led toggle', parseInt(index));
+            }
+            var row = target.parentNode.parentNode;
+            var parent = row.parentNode;
+            var spinner = parent.querySelector('#spinner');
             spinner.style.display = 'block';
-            target.style.display = 'none';
+            row.style.display = 'none';
         };
+
+        function showTimer(target) {
+            var parent = target.parentNode;
+            console.log(parent);
+            var row = parent.parentNode;
+            console.log(row);
+            var col12 = row.querySelector('.col-12');
+            col12.style.display = 'flex';
+        }
+
+        
 
 block content
     link(href='/css/principal.css', rel='stylesheet')
+    link(href='/css/open-iconic-bootstrap.css', rel='stylesheet')
     .container
         #loader.container
             .d-flex.justify-content-center.flex-column.text-center
                 .card.col-lg-6.offset-lg-3.loader
                     .card-body
                         strong Conectando ao Servidor ...
+
+        #masterbtn.row(style='display: none;')
+            .col-6.col-md-3.offset-md-3
+                .d-flex.justify-content-center
+                    btn(onclick='ledsOn()').btn.btn-success LIGAR TODOS
+            .col-6.col-md-3
+                .d-flex.justify-content-center
+                    btn(onclick='ledsOff()').btn.btn-danger APAGAR TODOS
         #content.row(style='visibility: hidden;')
 
         .ledcard.col-12.col-sm-6.col-md-4.col-xl-3(style='display: none;')
@@ -148,5 +196,12 @@ block content
                             .led-box
                                 #state.led-color
                     .d-flex.justify-content-center.flex-column.text-center
-                        btn(onclick='toggleLed(event.target)').btn.btn-danger APAGAR
+                        .row.no-gutters
+                            .col-12(style='display: none;')
+                                input(class='form-control', type='number', style='margin-bottom: 5px;')
+                            .col-4
+                                btn(onclick='showTimer(this)', style="display: block;").btn.btn-info
+                                    image(src='/assets/clock.png', style='max-height: 20px;')
+                            .col-8
+                                btn(onclick='toggleLed(event.target)', style='display: block;').btn.btn-danger.btn-led APAGAR
                         #spinner(style="display: none;") Esperando resposta do servidor...

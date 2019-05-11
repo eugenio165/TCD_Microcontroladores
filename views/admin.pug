@@ -1,5 +1,45 @@
 extends navbar.pug
 
+block script
+    script.
+        var SERVER_URL = '#{serverurl}';
+        var socket;
+        window.onload = () => {
+            socket = io(SERVER_URL, {reconnectionAttempts: 6, reconnectionDelayMax: 3000});
+            var status  = document.getElementById('statusbtn');
+            var content = document.getElementById('content');
+            var loader = document.getElementById('loader');
+            var ledcard = document.getElementsByClassName('ledcard')[0];
+            var ledQty = 0;
+            socket.on('connect', (data) => {
+                status.classList.remove('btn-primary','btn-danger', 'btn-info', 'btn-success');
+                status.classList.add('btn-success');
+                status.innerHTML = 'Conectado';
+            });
+
+            socket.on('reconnecting', (data) => {
+                status.classList.remove('btn-primary','btn-danger', 'btn-info', 'btn-success');
+                status.classList.add('btn-info');
+                status.innerHTML = 'Reconectando';
+            });
+
+            socket.on('reconnect_failed', () => {
+                status.classList.remove('btn-primary','btn-danger', 'btn-info', 'btn-success');
+                status.classList.add('btn-danger');
+                status.innerHTML = 'Offline';
+            });
+        }
+        var sendConfig = () => {
+            var qty = document.querySelector('#qty');
+            console.log(qty.value);
+            if (qty.value > 0 && qty.value < 9) {
+                socket.emit('led options', parseInt(qty.value));
+                window.location.replace('/');
+            } else {
+                qty.classList.add('invalid');
+            }
+        }
+
 block content
     style(type='text/css').
         #content {
@@ -30,17 +70,40 @@ block content
             margin-bottom: 15px;
             padding: 7px 9px;
         }
+
+        .invalid {
+            border: 1px solid red;
+        }
     script.
-        document.onreadystatechange = () => {
-            if(document.readyState === "complete"){
-                var content = document.getElementById('content');
-                var loader = document.getElementById('loader');
-                console.log(window.status);
+        var login = () => {
+            var user = document.getElementById('user');
+            var pass = document.getElementById('pass');
+            var form = document.querySelector('.form-signin');
+            var config = document.querySelector('#config');
+            let admin = user.value == 'admin';
+            let adminpass = pass.value == 'tcd2019';
+            if (!admin) {
+                user.classList.add('invalid');
+            }
+            if (!adminpass) {
+                pass.classList.add('invalid');
+            } 
+            if (admin && adminpass) {
+                form.style.display = 'none';
+                config.style.display = 'block';
             }
         }
     #content
         div.form-signin
             h2.form-signin-heading Login
-            input.form-control(type='text', placeholder='Usuario')
-            input.form-control(type='password', placeholder='senha')
-            button.btn.btn-large.btn-primary(type='submit') Sign in
+            input(id='user').form-control(type='text', placeholder='Usuario')
+            input(id='pass').form-control(type='password', placeholder='senha')
+            button.btn.btn-large.btn-primary(type='submit', onclick="login()") Login
+        
+        #config(style='display: none;').form-signin.text-center
+            h4 Quantidade de Leds:
+            input(id='qty', type='number').form-control
+            hr(style="visibility: hidden;")
+            btn(onclick='sendConfig()', style='max-width: 300px;').btn.btn-primary SALVAR
+
+
