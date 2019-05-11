@@ -31,7 +31,7 @@ block content
             padding: 7px 9px;
         }
     script.
-        document.onreadystatechange = function () {
+        document.onreadystatechange = () => {
             if(document.readyState === "complete"){
                 var content = document.getElementById('content');
                 var loader = document.getElementById('loader');

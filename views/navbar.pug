@@ -23,6 +23,7 @@ html(lang='en')
                 color: white;
             }
         script(src='/socket.io/socket.io.js')
+        block script
     body
         .container
             nav.navbar.navbar-expand-sm.navbar-dark.bg-dark
@@ -36,28 +37,4 @@ html(lang='en')
                 #statusbtn.btn.btn-primary Conectando
             block content
             
-    script.
-        var SERVER_URL = '#{serverurl}';
-
-        window.onload = function () {
-            var socket = io(SERVER_URL, {reconnectionAttempts: 6, reconnectionDelayMax: 3000});
-            var status  = document.getElementById('statusbtn');
-            socket.on('connect', (data) => {
-                status.classList.remove('btn-primary','btn-danger', 'btn-info', 'btn-success');
-                status.classList.add('btn-success');
-            });
-            socket.on('reconnecting', (data) => {
-                status.classList.remove('btn-primary','btn-danger', 'btn-info', 'btn-success');
-                status.classList.add('btn-info');
-            });
-            socket.on('reconnect_failed', () => {
-                status.classList.remove('btn-primary','btn-danger', 'btn-info', 'btn-success');
-                status.classList.add('btn-danger');
-            });
-        //- socket.on('led status', (status) => {
-        //-     var LEDS = status.map(s => {
-        //-         return {state: s, querying = false};
-        //-     });
-        //-     console.log(status);
-        //- });
-        }
+    

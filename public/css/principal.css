@@ -1,0 +1,68 @@
+.led-box {
+    height: 30px;
+    width: 25%;
+    margin: 10px 0;
+    float: left;
+}
+
+.btn {
+    transition: all 0.3s ease;
+}
+
+.led-box p {
+    font-size: 12px;
+    text-align: center;
+    margin: 1em;
+}
+
+.led-red {
+    margin: 0 auto;
+    width: 24px;
+    height: 24px;
+    background-color: #F00;
+    border-radius: 50%;
+    box-shadow: rgba(0, 0, 0, 0.2) 0 -1px 7px 1px, inset #441313 0 -1px 9px, rgba(255, 0, 0, 0.5) 0 2px 12px;
+}
+
+.led-green {
+    margin: 0 auto;
+    width: 24px;
+    height: 24px;
+    background-color: #ABFF00;
+    border-radius: 50%;
+    box-shadow: rgba(0, 0, 0, 0.2) 0 -1px 7px 1px, inset #304701 0 -1px 9px, #89FF00 0 2px 12px;
+}
+
+.led-color {
+    transition: all 0.4s ease-in-out;
+}
+
+.card-title {
+    padding-top: 7px;
+}
+
+.row {
+    margin-top: 30px;
+}
+
+.card {
+    margin-top: 15px;
+    margin-bottom: 15px;
+}
+
+.loader {
+    height: 150px;
+}
+
+.green {
+    color: green;
+}
+
+.red {
+    color: rgb(241, 97, 78);
+}
+
+.ledinfo {
+    display: flex;
+    justify-content: space-between;
+}

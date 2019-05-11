@@ -1,20 +1,152 @@
 extends navbar.pug
 
-block content
+block script
     script.
-        document.onreadystatechange = function () {
-            if(document.readyState === "complete"){
-                var content = document.getElementById('content');
-                var loader = document.getElementById('loader');
-                console.log(window.status);
-            }
+        var SERVER_URL = '#{serverurl}';
+        var socket;
+        var fucked = true;
+        window.onload = () => {
+            socket = io(SERVER_URL, {reconnectionAttempts: 6, reconnectionDelayMax: 3000});
+            var status  = document.getElementById('statusbtn');
+            var content = document.getElementById('content');
+            var loader = document.getElementById('loader');
+            var ledcard = document.getElementsByClassName('ledcard')[0];
+            var ledQty = 0;
+            socket.on('connect', (data) => {
+                status.classList.remove('btn-primary','btn-danger', 'btn-info', 'btn-success');
+                status.classList.add('btn-success');
+            });
+
+            socket.on('reconnecting', (data) => {
+                status.classList.remove('btn-primary','btn-danger', 'btn-info', 'btn-success');
+                status.classList.add('btn-info');
+            });
+
+            socket.on('reconnect_failed', () => {
+                status.classList.remove('btn-primary','btn-danger', 'btn-info', 'btn-success');
+                status.classList.add('btn-danger');
+            });
+            
+            socket.on('led status', (status) => {
+                var setOn = (el) => {
+                    var ledstate = el.querySelector('#state');
+                    let classes = ledstate.classList;
+                    //- for (var x=0; x < classes.length; x = 0) {
+                    //-     el.classList.remove(classes[x]);
+                    //- }
+
+                    // Changing state, so clear server wait
+                    let stateChange = ledstate.classList.contains('led-red');
+
+                    ledstate.classList.remove('led-red');
+                    ledstate.classList.add('led-green');
+                    var button = el.querySelector('btn');
+                    button.classList.remove('btn-success');
+                    button.classList.add('btn-danger');
+                    button.innerHTML = 'APAGAR';
+
+                    let spinner = el.querySelector('#spinner');
+                    spinner.style.display = 'none';
+                    button.style.display = 'block';
+                }
+                var setOff = (el) => {
+                    var ledstate = el.querySelector('#state');
+                    let classes = ledstate.classList;
+                    //- for (var x=0; x < classes.length; x = 0) {
+                    //-     el.classList.remove(classes[x]);
+                    //- }
+                    ledstate.classList.remove('led-green');
+                    ledstate.classList.add('led-red');
+                    var button = el.querySelector('btn');
+                    button.classList.remove('btn-danger');
+                    button.classList.add('btn-success');
+                    button.innerHTML = 'LIGAR';
+
+                    let spinner = el.querySelector('#spinner');
+                    spinner.style.display = 'none';
+                    button.style.display = 'block';
+                }
+                // Add new leds
+                if (status.length != ledQty) {
+                    ledQty = status.length;
+                    var cards = content.querySelectorAll('ledcard');
+                    cards.forEach(card => {
+                        card.parentNode.removeChild(element);
+                    });
+                    status.map((state, index) => {
+                        loader.style.display = 'none';
+                        content.style.visibility = 'visible';
+
+                        var newcard = ledcard.cloneNode(true);
+
+                        //Setting card id for future toggles
+                        newcard.setAttribute('id', 'led' + index);
+                        newcard.style.display = 'block';
+
+                        // Setting card title
+                        var title = newcard.querySelector('h5');
+                        title.innerHTML = 'LED ' + index;
+
+                        var btn = newcard.querySelector('btn');
+                        btn.setAttribute('id', 'led' + index);
+
+                        if (state) {
+                            setOn(newcard);
+                        } else {
+                            setOff(newcard)
+                        }
+
+                        content.appendChild(newcard);
+                    });
+                } else {
+                    status.map((state, index) => {
+                        var cards = content.querySelectorAll('.ledcard');
+                        var card = cards[index];
+                        if (state) {
+                            setOn(card);
+                        } else {
+                            setOff(card)
+                        }
+                    });
+                }
+
+            });
         }
-    #content
+        function ledsOff() {
+            socket.emit('led off');
+        };
+
+        function ledsOn() {
+            socket.emit('led on');
+        };
+
+        var toggleLed = (target) => {
+            var string = target.getAttribute('id');
+            index = string.split('led')[1];
+            socket.emit('led toggle', parseInt(index));
+            var spinner = target.parentNode.querySelector('#spinner');
+            spinner.style.display = 'block';
+            target.style.display = 'none';
+        };
+
+block content
+    link(href='/css/principal.css', rel='stylesheet')
+    .container
         #loader.container
-            loader.d-flex.justify-content-center.flex-column.text-center
+            .d-flex.justify-content-center.flex-column.text-center
                 .card.col-lg-6.offset-lg-3.loader
                     .card-body
                         strong Conectando ao Servidor ...
-                        .d-flex.justify-content-center
-                            .spinner-border(role='status')
-                                span.sr-only Loading...
+        #content.row(style='visibility: hidden;')
+
+        .ledcard.col-12.col-sm-6.col-md-4.col-xl-3(style='display: none;')
+            .card
+                .card-body
+                    .d-flex.ledinfo
+                        h5(id='title').card-title
+                        .align-end
+                            .led-box
+                                #state.led-color
+                    .d-flex.justify-content-center.flex-column.text-center
+                        btn(onclick='toggleLed(event.target)').btn.btn-danger APAGAR
+                        #spinner(style="display: none;") Esperando resposta do servidor...
