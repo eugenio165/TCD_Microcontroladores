@@ -2,6 +2,7 @@
 var express = require('express');
 var app = express();
 const port = 3000;
+var favicon = require("serve-favicon");
 
 // Usado para comunicação em tempo real
 var server = require('http').Server(app);
@@ -12,7 +13,7 @@ var bodyParser = require('body-parser');
 
 // Usado apra armazenar os estados dos leds
 var ledQty = 3;
-var ledStatus = [false, false, false];
+var ledStatus = [false, true, false];
 const path = require('path');
 
 // Pacote usado para deixar o servidor no ar, na internet
@@ -75,14 +76,15 @@ app.use(bodyParser.json());
 app.set("views", __dirname + "/views");
 // app.use(express.static(__dirname + '/views'));
 app.use(express.static(path.join(__dirname, "public")));
+app.use(favicon(path.join(__dirname, "public", "assets", "iot.ico")));
 
 // Enviando o index do site quando alguem bater no link do site
 app.get('/', (req, res) => {
-    res.render('principal', {serverurl: 'localhost:3000', route: 'principal'});
+    res.render('principal', { serverurl: 'localhost:3000', route: 'principal' });
 });
 
 app.get('/admin', (req, res) => {
-    res.render('admin', {serverurl: 'localhost:3000', route: 'admin'});
+    res.render('admin', { serverurl: 'localhost:3000', route: 'admin' });
 });
 
 // Usado para redirecionar os pedidos em qualquer link
@@ -99,7 +101,7 @@ server.listen(port, (succ, err) => {
 // Trata da conexão do websocket (comunicação em tempo real)
 
 
-
+//TODO: Connection counter
 io.on('connection', (socket) => {
     console.log('SOCKET> NEW CONNECTION');
     // Ao conectar, envie o status atual dos LEDS
@@ -112,7 +114,10 @@ io.on('connection', (socket) => {
         microport.write(Buffer.from([index]), (err, f) => {
             console.log('AFTER LED TOGGLE> ', err, f);
         });
-        io.emit('led status', ledStatus);
+        setTimeout(() => {
+            io.emit('led status', ledStatus);
+
+        }, 750);
     });
 
     // Ao receber um pedido para ligar todos os LEDs...
@@ -133,7 +138,7 @@ io.on('connection', (socket) => {
 
     // Ao receber um pedido de configuração da pagina de ADMIN...
     socket.on('led options', (config) => {
-        console.log(config);
+        //TODO: Set trisb in pic
         ledQty = config.ledQty;
         const newStatus = [];
         for (let index = 0; index < ledQty; index++) {
