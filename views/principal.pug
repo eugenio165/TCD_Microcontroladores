@@ -11,6 +11,10 @@ block script
             var content = document.getElementById('content');
             var loader = document.getElementById('loader');
             var ledcard = document.getElementsByClassName('ledcard')[0];
+            socket.on('connections', (data) => {
+                let con = document.getElementById('connections');
+                con.innerHTML = data;
+            });
             socket.on('connect', (data) => {
                 status.classList.remove('btn-primary','btn-danger', 'btn-info', 'btn-success');
                 status.classList.add('btn-success');

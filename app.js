@@ -20,11 +20,6 @@ const path = require('path');
 // Pacote usado para deixar o servidor no ar, na internet
 const ngrok = require('ngrok');
 var url = 'localhost:3000';
-// (async () => {
-//     url = await ngrok.connect(port);
-//     console.log(url);
-//     open(url);
-// })();
 
 // Pacote para comunicar com o PIC
 const SerialPort = require('serialport');
@@ -38,31 +33,72 @@ const options = {
 const microport = new SerialPort('/dev/ttyUSB0', options, err => {
     if (err)
         return console.log('Erro ao abrir a porta!\n', err.message);
-    console.log('ABRIU LOGO NO INICIO');
 });
 
-//TODO: Test ledstatus receiver
 microport.on('error', err => {
     console.log('Erro na porta!:\n ', err.message);
 });
 
 // Ao abrir, recebe o estado dos leds e seta o trisb
 microport.on('open', () => {
-    console.log('ABRIU abriu');
     // Manda o codigo 11 pra pegar o status dos LEDS
-    microport.write(Buffer.from([11]), (err, f) => {
-        console.log('depois do status', err, f);
-    });
+    console.log('PORTA DO PIC ABERTA COM SUCESSO!');
+    microport.write(Buffer.from([11, 9]));
 });
 
+var started = false;
+var ledIndex = -1;
+var status = false;
 // Switches the port into "flowing mode"
 microport.on('data', (data) => {
-    console.log('FROM PIC: ' + typeof data);
-    console.log('IS: ', data);
-    console.log('PIC> ', data.values());
+    let int = data.readUInt8(0);
+    // console.log('hi', status);
+    if (!status) {
+        console.log('PIC> ', int);
+    }
+    if (status) {
+        status = false;
+        let binary = int.toString(2);
+        // console.log(binary);
+        if (binary.length == 1)
+            ledQty = 8;
+        else {
+            let counter = 0;
+            for (let i = 0; i < binary.length; i++) {
+                if (binary[i] == 0)
+                counter++;
+            }
+            ledQty = counter;
+        }
+        console.log('TRISB> ', ledQty);
+        const newStatus = [];
+        for (let index = 0; index < ledQty; index++) {
+            newStatus.push(false);
+        }
+        ledStatus = newStatus;
+        if (!started) {
+            (async () => {
+                url = await ngrok.connect(port);
+                console.log(url);
+                open(url);
+            })();
+            started = true;
+        }
+    } else if (int == 9) {
+        ledStatus = ledStatus.map(state => false);
+    } else if (int == 10) {
+        ledStatus = ledStatus.map(state => true);
+    } else if (int <= 7) {
+        if (ledIndex == -1)
+            ledIndex = int;
+        else {
+            ledStatus[ledIndex] = (int == 1) ? true : false;
+            ledIndex = -1;
+        }
+    } else if (int == 11)
+        status = true;
+    io.emit('led status', ledStatus);
 });
-
-
 
 // Configurando conexão com o servidor
 
@@ -86,7 +122,7 @@ app.get('/', (req, res) => {
 });
 
 app.get('/admin', (req, res) => {
-    res.render('admin', { serverurl: 'localhost:3000', route: 'admin' });
+    res.render('admin', { serverurl: url, route: 'admin' });
 });
 
 // Usado para redirecionar os pedidos em qualquer link
@@ -96,63 +132,44 @@ app.get('*', (req, res) => {
 
 server.listen(port, (succ, err) => {
     console.log("Servidor ativo na porta: " + port);
-    open('http://localhost:3000');
+    // open('http://localhost:3000');
 });
 
 
 
 // Trata da conexão do websocket (comunicação em tempo real)
-
-
-//TODO: Connection counter
+var connections = 0;
 io.on('connection', (socket) => {
+    connections++;
+    io.emit('connections', connections);
     console.log('SOCKET> NEW CONNECTION');
     // Ao conectar, envie o status atual dos LEDS
     socket.emit('led status', ledStatus);
 
     // Ao receber um pedido de alteração de estado do led...
     socket.on('led toggle', (index) => {
-        ledStatus[index] = !ledStatus[index];
         // Passa para o PIC qual led é para ser apagado/ligado / RECEBE DO PIC O ESTADO DO LED
-        microport.write(Buffer.from([index]), (err, f) => {
-            console.log('AFTER LED TOGGLE> ', err, f);
-        });
-        setTimeout(() => {
-            io.emit('led status', ledStatus);
-        }, 600);
+        microport.write(Buffer.from([index]));
     });
 
     // Ao receber um pedido para ligar todos os LEDs...
     socket.on('led on', (index) => {
-        ledStatus = ledStatus.map(state => true);
-        console.log('LEDs ON');
         microport.write(Buffer.from([10]));
-        setTimeout(() => {
-            io.emit('led status', ledStatus);
-        }, 600);
     });
 
     // Ao receber um pedido para apagar todos os LEDs...
     socket.on('led off', (index) => {
-        ledStatus = ledStatus.map(state => false);
-        console.log('LEDs OFF');
         microport.write(Buffer.from([9]));
-        setTimeout(() => {
-            io.emit('led status', ledStatus);
-        }, 600);
     });
 
     // Ao receber um pedido de configuração da pagina de ADMIN...
     socket.on('led options', (config) => {
-        //TODO: Set trisb in pic
-        ledQty = config;
-        const newStatus = [];
-        for (let index = 0; index < ledQty; index++) {
-            newStatus.push(false);
-        }
-        //TODO: Receive led status from pic
-        ledStatus = newStatus;
-        io.emit('led status', ledStatus);
-        // Passa para o PIC quantos LEDS é para ser usado / RECEBE DO PIC OS ESTADOS DOS LEDS E ATUALIA CONTADOR
+        let binaryConfig = Math.pow(2, config) -1;
+        let trisb = 255 - binaryConfig;
+        microport.write(Buffer.from([8, trisb, 11]));
     });
+    socket.on('disconnect', () => {
+        connections--;
+        io.emit('connections', connections);
+    })
 });

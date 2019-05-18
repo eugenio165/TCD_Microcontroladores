@@ -11,6 +11,10 @@ block script
             var loader = document.getElementById('loader');
             var ledcard = document.getElementsByClassName('ledcard')[0];
             var ledQty = 0;
+            socket.on('connections', (data) => {
+                let con = document.getElementById('connections');
+                con.innerHTML = data;
+            });
             socket.on('connect', (data) => {
                 status.classList.remove('btn-primary','btn-danger', 'btn-info', 'btn-success');
                 status.classList.add('btn-success');
@@ -96,8 +100,8 @@ block content
     #content
         div.form-signin
             h2.form-signin-heading Login
-            input(id='user').form-control(type='text', placeholder='Usuario')
-            input(id='pass').form-control(type='password', placeholder='senha')
+            input(id='user', type='text', placeholder='Usuario').form-control
+            input(id='pass', type='password', placeholder='senha').form-control
             button.btn.btn-large.btn-primary(type='submit', onclick="login()") Login
         
         #config(style='display: none;').form-signin.text-center
