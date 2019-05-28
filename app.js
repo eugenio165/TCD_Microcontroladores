@@ -166,7 +166,25 @@ io.on('connection', (socket) => {
     socket.on('led options', (config) => {
         let binaryConfig = Math.pow(2, config) -1;
         let trisb = 255 - binaryConfig;
-        microport.write(Buffer.from([8, trisb, 11]));
+        microport.write(Buffer.from([8, trisb]));
+        let binary = trisb.toString(2);
+        console.log(binary);
+        if (binary.length == 1)
+            ledQty = 8;
+        else {
+            let counter = 0;
+            for (let i = 0; i < binary.length; i++) {
+                if (binary[i] == 0)
+                counter++;
+            }
+            ledQty = counter;
+        }
+        console.log('TRISB> ', ledQty);
+        const newStatus = [];
+        for (let index = 0; index < ledQty; index++) {
+            newStatus.push(false);
+        }
+        ledStatus = newStatus;
     });
     socket.on('disconnect', () => {
         connections--;
