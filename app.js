@@ -13,14 +13,18 @@ var io = require('socket.io')(server);
 var bodyParser = require('body-parser');
 
 // Usado apra armazenar os estados dos leds
-var ledQty = 3;
-var ledStatus = [false, true, false];
+var ledQty = 8;
+var ledStatus = [false, false, false, false, false, false, false, false];
 const path = require('path');
 
 // Pacote usado para deixar o servidor no ar, na internet
 const ngrok = require('ngrok');
 var url = 'localhost:3000';
-
+(async () => {
+    url = await ngrok.connect(port);
+    console.log(url);
+    open(url);
+})();
 // Pacote para comunicar com o PIC
 const SerialPort = require('serialport');
 const options = {
@@ -43,7 +47,7 @@ microport.on('error', err => {
 microport.on('open', () => {
     // Manda o codigo 11 pra pegar o status dos LEDS
     console.log('PORTA DO PIC ABERTA COM SUCESSO!');
-    microport.write(Buffer.from([11, 9]));
+    microport.write(Buffer.from([9]));
 });
 
 var started = false;
@@ -52,39 +56,8 @@ var status = false;
 // Switches the port into "flowing mode"
 microport.on('data', (data) => {
     let int = data.readUInt8(0);
-    // console.log('hi', status);
-    if (!status) {
-        console.log('PIC> ', int);
-    }
-    if (status) {
-        status = false;
-        let binary = int.toString(2);
-        // console.log(binary);
-        if (binary.length == 1)
-            ledQty = 8;
-        else {
-            let counter = 0;
-            for (let i = 0; i < binary.length; i++) {
-                if (binary[i] == 0)
-                counter++;
-            }
-            ledQty = counter;
-        }
-        console.log('TRISB> ', ledQty);
-        const newStatus = [];
-        for (let index = 0; index < ledQty; index++) {
-            newStatus.push(false);
-        }
-        ledStatus = newStatus;
-        if (!started) {
-            (async () => {
-                url = await ngrok.connect(port);
-                console.log(url);
-                open(url);
-            })();
-            started = true;
-        }
-    } else if (int == 9) {
+    console.log('PIC> ', int);
+    if (int == 9) {
         ledStatus = ledStatus.map(state => false);
     } else if (int == 10) {
         ledStatus = ledStatus.map(state => true);
@@ -95,8 +68,7 @@ microport.on('data', (data) => {
             ledStatus[ledIndex] = (int == 1) ? true : false;
             ledIndex = -1;
         }
-    } else if (int == 11)
-        status = true;
+    }
     io.emit('led status', ledStatus);
 });
 
@@ -164,27 +136,28 @@ io.on('connection', (socket) => {
 
     // Ao receber um pedido de configuração da pagina de ADMIN...
     socket.on('led options', (config) => {
-        let binaryConfig = Math.pow(2, config) -1;
-        let trisb = 255 - binaryConfig;
-        microport.write(Buffer.from([8, trisb]));
-        let binary = trisb.toString(2);
-        console.log(binary);
-        if (binary.length == 1)
-            ledQty = 8;
-        else {
-            let counter = 0;
-            for (let i = 0; i < binary.length; i++) {
-                if (binary[i] == 0)
-                counter++;
-            }
-            ledQty = counter;
-        }
-        console.log('TRISB> ', ledQty);
+        // let binaryConfig = Math.pow(2, config) -1;
+        // let trisb = 255 - binaryConfig;
+        // microport.write(Buffer.from([8, trisb]));
+        // let binary = trisb.toString(2);
+        // console.log(binary);
+        // if (binary.length == 1)
+        //     ledQty = 8;
+        // else {
+        //     let counter = 0;
+        //     for (let i = 0; i < binary.length; i++) {
+        //         if (binary[i] == 0)
+        //         counter++;
+        //     }
+        //     ledQty = counter;
+        // }
+        console.log('TRISB> ', config);
         const newStatus = [];
-        for (let index = 0; index < ledQty; index++) {
+        for (let index = 0; index < config; index++) {
             newStatus.push(false);
         }
         ledStatus = newStatus;
+        ledQty = config;
     });
     socket.on('disconnect', () => {
         connections--;

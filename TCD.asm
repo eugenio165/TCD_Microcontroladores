@@ -38,7 +38,7 @@
 ;==========================================================================================================
 
 INICIO 		
-    ; SETA AS CONFIGURAÇÕES DE ENVIO E RECEBIMENTO DE DADOS
+    ; SETA AS CONFIGURAï¿½ï¿½ES DE ENVIO E RECEBIMENTO DE DADOS
     MOVLW b'00100110'
     banksel TXSTA
     MOVWF TXSTA
@@ -53,9 +53,9 @@ INICIO
     BANKSEL SPBRG
     MOVWF SPBRG
 
-    ; CONFIGURAÇÃO INICIAL PARA O TRIS B, 4 ENTRADA (PARA APAGAR OS LEDS) E 4 DE SAÍDA (PARA ACENDER/APAGAR OS LEDS)
-    MOVLW b'11110000'
-    banksel TRISB
+    ; CONFIGURAï¿½ï¿½O INICIAL PARA O TRIS B, 4 ENTRADA (PARA APAGAR OS LEDS) E 4 DE SAï¿½DA (PARA ACENDER/APAGAR OS LEDS)
+    MOVLW b'00000000'
+    BANKSEL TRISB
     MOVWF TRISB
 
 LOOP ; Loop principal do programa
@@ -68,7 +68,7 @@ LOOP ; Loop principal do programa
     GOTO LOOP
 
 ;===========================================================================================================================
- ________  _____  _____  ____  _____   ______    ___   ________   ______   
+; ________  _____  _____  ____  _____   ______    ___   ________   ______   
 ;|_   __  ||_   _||_   _||_   \|_   _|.' ___  | .'   `.|_   __  |.' ____ \  
 ;  | |_ \_|  | |    | |    |   \ | | / .'   \_|/  .-.  \ | |_ \_|| (___ \_| 
 ;  |  _|     | '    ' |    | |\ \| | | |       | |   | | |  _| _  _.____`.  
@@ -83,10 +83,15 @@ ZERACONTADOR
     RETURN
 
 RECEBE ; Recebe dados da serial
+	NOP
+	NOP
+	NOP
+	NOP
+	NOP
     CALL OVERRUN
     BANKSEL PIR1
     BTFSS PIR1, RCIF ; Chegou algo?
-    goto WAIT ; Nao
+    GOTO WAIT ; Nao
     MOVF RCREG, 0 ; Sim, recebe o valor em W
     MOVWF ENTRADA_SERIAL
 	;DEBUG
@@ -95,6 +100,7 @@ RECEBE ; Recebe dados da serial
     RETURN
 
 WAIT
+	NOP
     NOP
     NOP
     NOP
@@ -105,18 +111,30 @@ ENVIA ; Envia o W para a serial
 	CALL TESTAENVIO
 	BANKSEL TXREG
 	MOVWF TXREG ; Envia
+	NOP
+	NOP
+	NOP
+	NOP
+	NOP
     RETURN
 
 TESTAENVIO ; Espera um dado ser enviado antes de mandar outro
+	NOP
+	NOP
+	NOP
+	NOP
     NOP
     NOP
     NOP
-    BANKSEL TXSTA ; trmt é o buffer que tem o status to registrador de transmissao
+    BANKSEL TXSTA ; trmt ï¿½ o buffer que tem o status to registrador de transmissao
     BTFSS TXSTA, TRMT  ; trmt = 1?
-    GOTO TESTAENVIO ; Nao, buffer está mandando dado ainda, espera
+    GOTO TESTAENVIO ; Nao, buffer estï¿½ mandando dado ainda, espera
     NOP ; Sim, mata tempo do proc e continua
     NOP
     NOP
+	NOP
+	NOP
+	NOP
     RETURN
 
 OVERRUN ; Testa o bit overrun e reseta se for necessario, para permitir o recebimento de bits
@@ -139,7 +157,7 @@ OVERRUN ; Testa o bit overrun e reseta se for necessario, para permitir o recebi
 
 ;=======================================================================================================================================================
 
-   ______    ___   ____  _____  _________  _______      ___   _____     ________        ______   ________        _____     ________  ______    
+;   ______    ___   ____  _____  _________  _______      ___   _____     ________        ______   ________        _____     ________  ______    
 ; .' ___  | .'   `.|_   \|_   _||  _   _  ||_   __ \   .'   `.|_   _|   |_   __  |      |_   _ `.|_   __  |      |_   _|   |_   __  ||_   _ `.  
 ;/ .'   \_|/  .-.  \ |   \ | |  |_/ | | \_|  | |__) | /  .-.  \ | |       | |_ \_|        | | `. \ | |_ \_|        | |       | |_ \_|  | | `. \ 
 ;| |       | |   | | | |\ \| |      | |      |  __ /  | |   | | | |   _   |  _| _         | |  | | |  _| _         | |   _   |  _| _   | |  | | 
@@ -149,11 +167,11 @@ OVERRUN ; Testa o bit overrun e reseta se for necessario, para permitir o recebi
 
 ;=======================================================================================================================================================
 
-TESTALED ;{ Testa se o comando de entrada está setando algum LED
+TESTALED ;{ Testa se o comando de entrada estï¿½ setando algum LED
     MOVF ENTRADA_SERIAL, 0; Pega o dado da entrada no W
     SUBLW d'7'
-    BTFSS STATUS, C ; Testa se o comando de entrada está entre o numero de leds (0-7)
-    GOTO TESTA8 ; É maior que 7, o comando é outro
+    BTFSS STATUS, C ; Testa se o comando de entrada estï¿½ entre o numero de leds (0-7)
+    GOTO TESTA8 ; ï¿½ maior que 7, o comando ï¿½ outro
 	MOVF ENTRADA_SERIAL, 0; Pega o dado de entrada de novo
 
 ;================================================================================================================================
@@ -165,11 +183,11 @@ TESTALED ;{ Testa se o comando de entrada está setando algum LED
 ; |________||________||______.'  '.____.' 
 ;================================================================================================================================
 
-	SUBLW d'0' ; Testa se é para trocar o estado do LED0
+	SUBLW d'0' ; Testa se ï¿½ para trocar o estado do LED0
     BTFSS STATUS, Z
-	GOTO TESTA_LED1 ; Não é 0, Testa se é para o LED1
+	GOTO TESTA_LED1 ; Nï¿½o ï¿½ 0, Testa se ï¿½ para o LED1
     BANKSEL PORTB
-	BTFSS PORTB, RB0 ; O comando é para o LED0
+	BTFSS PORTB, RB0 ; O comando ï¿½ para o LED0
 	GOTO RB0_APAGADO
 	BCF PORTB, RB0 ; LED0 Ligado, APAGA ele
 	CALL LED_APAGADO
@@ -181,7 +199,7 @@ RB0_APAGADO ; RB0 Apagado, LIGA ele
 	GOTO LOOP
 
 ;=================================================================================================================================
-  _____     ________  ______    __    
+;  _____     ________  ______    __    
 ; |_   _|   |_   __  ||_   _ `. /  |   
 ;   | |       | |_ \_|  | | `. \`| |   
 ;   | |   _   |  _| _   | |  | | | |   
@@ -194,11 +212,11 @@ TESTA_LED1
 	MOVF ENTRADA_SERIAL, 0; Pega o dado de entrada de novo
 	SUBLW d'1'
     BTFSS STATUS, Z ; Testa se == 1
-	GOTO TESTA_LED2 ; Não é 0, é outro led
+	GOTO TESTA_LED2 ; Nï¿½o ï¿½ 0, ï¿½ outro led
     BANKSEL PORTB
-	BTFSS PORTB, RB1 ; É para o LED1, testa o estado dele
+	BTFSS PORTB, RB1 ; ï¿½ para o LED1, testa o estado dele
 	GOTO RB1_APAGADO
-	BCF PORTB, RB1 ; Está ligado, APAGA ele
+	BCF PORTB, RB1 ; Estï¿½ ligado, APAGA ele
 	CALL LED_APAGADO
 	GOTO LOOP
 
@@ -220,11 +238,11 @@ TESTA_LED2
 	MOVF ENTRADA_SERIAL, 0; Pega o dado de entrada de novo
 	SUBLW d'2'
     BTFSS STATUS, Z ; Testa se == 1
-	GOTO TESTA_LED3 ; Não é 0, é outro led
+	GOTO TESTA_LED3 ; Nï¿½o ï¿½ 0, ï¿½ outro led
     BANKSEL PORTB
-	BTFSS PORTB, RB2 ; É para o LED1, testa o estado dele
+	BTFSS PORTB, RB2 ; ï¿½ para o LED1, testa o estado dele
 	GOTO RB2_APAGADO
-	BCF PORTB, RB2 ; Está ligado, APAGA ele
+	BCF PORTB, RB2 ; Estï¿½ ligado, APAGA ele
 	CALL LED_APAGADO
 	GOTO LOOP
 
@@ -247,11 +265,11 @@ TESTA_LED3
 	MOVF ENTRADA_SERIAL, 0; Pega o dado de entrada de novo
 	SUBLW d'3'
     BTFSS STATUS, Z ; Testa se == 1
-	GOTO TESTA_LED4 ; Não é 0, é outro led
+	GOTO TESTA_LED4 ; Nï¿½o ï¿½ 0, ï¿½ outro led
     BANKSEL PORTB
-	BTFSS PORTB, RB3 ; É para o LED1, testa o estado dele
+	BTFSS PORTB, RB3 ; ï¿½ para o LED1, testa o estado dele
 	GOTO RB3_APAGADO
-	BCF PORTB, RB3 ; Está ligado, APAGA ele
+	BCF PORTB, RB3 ; Estï¿½ ligado, APAGA ele
 	CALL LED_APAGADO
 	GOTO LOOP
 
@@ -273,11 +291,11 @@ TESTA_LED4
 	MOVF ENTRADA_SERIAL, 0; Pega o dado de entrada de novo
 	SUBLW d'4'
     BTFSS STATUS, Z ; Testa se == 1
-	GOTO TESTA_LED5 ; Não é 0, é outro led
+	GOTO TESTA_LED5 ; Nï¿½o ï¿½ 0, ï¿½ outro led
     BANKSEL PORTB
-	BTFSS PORTB, RB4 ; É para o LED1, testa o estado dele
+	BTFSS PORTB, RB4 ; ï¿½ para o LED1, testa o estado dele
 	GOTO RB4_APAGADO
-	BCF PORTB, RB4 ; Está ligado, APAGA ele
+	BCF PORTB, RB4 ; Estï¿½ ligado, APAGA ele
 	CALL LED_APAGADO
 	GOTO LOOP
 
@@ -301,11 +319,11 @@ TESTA_LED5
 	MOVF ENTRADA_SERIAL, 0; Pega o dado de entrada de novo
 	SUBLW d'5'
     BTFSS STATUS, Z ; Testa se == 1
-	GOTO TESTA_LED6 ; Não é 0, é outro led
+	GOTO TESTA_LED6 ; Nï¿½o ï¿½ 0, ï¿½ outro led
     BANKSEL PORTB
-	BTFSS PORTB, RB5 ; É para o LED1, testa o estado dele
+	BTFSS PORTB, RB5 ; ï¿½ para o LED1, testa o estado dele
 	GOTO RB5_APAGADO
-	BCF PORTB, RB5 ; Está ligado, APAGA ele
+	BCF PORTB, RB5 ; Estï¿½ ligado, APAGA ele
 	CALL LED_APAGADO
 	GOTO LOOP
 
@@ -328,11 +346,11 @@ TESTA_LED6
 	MOVF ENTRADA_SERIAL, 0; Pega o dado de entrada de novo
 	SUBLW d'6'
     BTFSS STATUS, Z ; Testa se == 1
-	GOTO TESTA_LED7 ; Não é 0, é outro led
+	GOTO TESTA_LED7 ; Nï¿½o ï¿½ 0, ï¿½ outro led
     BANKSEL PORTB
-	BTFSS PORTB, RB6 ; É para o LED1, testa o estado dele
+	BTFSS PORTB, RB6 ; ï¿½ para o LED1, testa o estado dele
 	GOTO RB6_APAGADO
-	BCF PORTB, RB6 ; Está ligado, APAGA ele
+	BCF PORTB, RB6 ; Estï¿½ ligado, APAGA ele
 	CALL LED_APAGADO
 	GOTO LOOP
 
@@ -356,11 +374,11 @@ TESTA_LED7
 	MOVF ENTRADA_SERIAL, 0; Pega o dado de entrada de novo
 	SUBLW d'7'
     BTFSS STATUS, Z ; Testa se == 1
-	GOTO LOOP ; Não é 0, é outro led
+	GOTO LOOP ; Nï¿½o ï¿½ 0, ï¿½ outro led
     BANKSEL PORTB
-	BTFSS PORTB, RB7 ; É para o LED1, testa o estado dele
+	BTFSS PORTB, RB7 ; ï¿½ para o LED1, testa o estado dele
 	GOTO RB7_APAGADO
-	BCF PORTB, RB7 ; Está ligado, APAGA ele
+	BCF PORTB, RB7 ; Estï¿½ ligado, APAGA ele
 	CALL LED_APAGADO
 	GOTO LOOP
 
@@ -369,47 +387,16 @@ RB7_APAGADO
 	CALL LED_LIGADO
 	GOTO LOOP
 
-LED_APAGADO ; Manda para o computador o numero 0 indicando que o estado do LED está APAGADO
+LED_APAGADO ; Manda para o computador o numero 0 indicando que o estado do LED estï¿½ APAGADO
     MOVLW d'0'
 	CALL ENVIA
     RETURN
 
-LED_LIGADO ; Manda para o computador o numero 1 indicando que o estado do LED está LIGADO
+LED_LIGADO ; Manda para o computador o numero 1 indicando que o estado do LED estï¿½ LIGADO
     MOVLW d'1'
 	CALL ENVIA
     RETURN
 ;}
-
-
-;===============================================================================================================================
-
-TESTA_LED_GENERICO
-	MOVF ENTRADA_SERIAL, 0; Coloca o dado de entrada no W
-    BANKSEL PORTB
-	BTFSS PORTB, ENTRADA_SERIAL ; Testa o LED que foi enviado
-	GOTO LIGA_LED_GENERICO
-	BCF PORTB, ENTRADA_SERIAL ; Está ligado, APAGA ele
-	CALL LED_APAGADO
-	GOTO LOOP
-
-LIGA_LED_GENERICO
-	BSF PORTB, ENTRADA_SERIAL
-	CALL LED_LIGADO
-	GOTO LOOP
-
-;================================================================================================================================
-
-LED_APAGADO ; Manda para o computador o numero 0 indicando que o estado do LED está APAGADO
-    MOVLW d'0'
-	CALL ENVIA
-    RETURN
-
-LED_LIGADO ; Manda para o computador o numero 1 indicando que o estado do LED está LIGADO
-    MOVLW d'1'
-	CALL ENVIA
-    RETURN
-;}
-
 
 ;=======================================================================================================================
 ;  ______   ________  _________     _              _____     ________  ______     ______   
@@ -420,39 +407,22 @@ LED_LIGADO ; Manda para o computador o numero 1 indicando que o estado do LED es
 ; \______.'|________|  |_____||____| |____|       |________||________||______.'  \______.' 
 ;=======================================================================================================================
 
-TESTA8 ;{ Testa se o comando recebido é 8 (setando numero de leds no trisb)
+TESTA8 ;{ Testa se o comando recebido ï¿½ 8 (setando numero de leds no trisb)
     MOVF ENTRADA_SERIAL, 0 ; Pega o dado de entrada e coloca no W
     SUBLW d'8'
     BTFSS STATUS, Z 
-    GOTO TESTA9 ; NAO, o comando é outro
-    CALL RECEBE ; SIM, É 8, recebe o numero de leds
+    GOTO TESTA9 ; NAO, o comando ï¿½ outro
+    CALL RECEBE ; SIM, ï¿½ 8, recebe o numero de leds
 	MOVF ENTRADA_SERIAL, 0 ; Pega o dado de entrada e coloca no W
-    MOVWF NUMLEDS ; Armazena o numero de leds na variavel NUMLEDS
-    CALL ZERACONTADOR
-    MOVLW b'11111111' ; Inicia o TRISBVAL com tudo input (nenhum led)
-    MOVWF TRISBVAL
-
-TRISBLOOP; Loop usado para setar os bits do trisb
-    MOVF CONTADOR, 0 ; Manda o contador pro W
-    SUBWF NUMLEDS, 0 ; Subtrai o contador do Num leds
-    BTFSS STATUS, Z ; Se for zero, encerra o loop
-    GOTO ADICIONALED ; NAO
-    GOTO SETTRISB ; SIM, deu 0
-	
-ADICIONALED
-    BCF TRISBVAL, CONTADOR
-    INCF CONTADOR
-    GOTO TRISBLOOP
-
-SETTRISB
-    BANKSEL TRISB
-    MOVF TRISBVAL, 0 ; Manda TRISBVAL para W
-    MOVWF TRISB ; Seta o trisB
-	MOVF TRISBVAL, 0 ; Manda TRISBVAL para W
-	;DEBUG
-    CALL ENVIA
-    GOTO LOOP; Reinicia o loop
-;}
+	;BANKSEL TRISB Removendo a troca do trisb
+	;MOVWF TRISB
+	BANKSEL PIR1
+	MOVF ENTRADA_SERIAL, 0
+	BANKSEL PORTB
+	MOVWF TRISBVAL
+	MOVF TRISBVAL, 0
+	CALL ENVIA
+	GOTO LOOP
 
 ;==============================================================================================================================
 ;      _       _______     _        ______       _               _____     ________  ______     ______   
@@ -468,7 +438,7 @@ TESTA9 ;{ Se a entrada for 9, apaga todos os LEDS
     MOVF ENTRADA_SERIAL, 0 ; Pega o dado da entrada
     SUBLW d'9' ; 9 = Apagando todos os leds
     BTFSS STATUS, Z 
-    GOTO TESTA10 ; NAO, o comando é outro
+    GOTO TESTA10 ; NAO, o comando ï¿½ outro
     MOVLW b'00000000'
     BANKSEL PORTB
     MOVWF PORTB
@@ -489,7 +459,7 @@ TESTA10 ;{ Liga todos os leds
     MOVF ENTRADA_SERIAL, 0 ; Pega o dado da entrada
     SUBLW d'10' ; 10 = Apagando todos os leds
     BTFSS STATUS, Z 
-    GOTO TESTA11 ; NAO, o comando é outro
+    GOTO TESTA11 ; NAO, o comando ï¿½ outro
     MOVLW b'11111111'
     BANKSEL PORTB
     MOVWF PORTB
@@ -509,8 +479,8 @@ TESTA11 ;{ 11 = Pega o status de todos os leds
     MOVF ENTRADA_SERIAL, 0 ; Pega o dado da entrada
     SUBLW d'11' ; 11 = Retorna para o serial o status de todos os leds
     BTFSS STATUS, Z 
-    GOTO LOOP ; NAO, o comando é outro
-    MOVF PORTB, 0 ; Manda o PORTB para W
+    GOTO LOOP ; NAO, o comando ï¿½ outro
+    MOVF TRISBVAL, 0 ; Manda o TRSIB para W
     CALL ENVIA
     GOTO LOOP
 ;}
